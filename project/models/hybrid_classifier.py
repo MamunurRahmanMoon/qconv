@@ -44,7 +44,11 @@ class HybridQConvClassifier(nn.Module):
         # Classical classifier
         self.fc = nn.Linear(M * E * F, 1)
 
-    def forward(self, x):
+    def set_shots(self, shots):
+        """Swaps the QNode for finite shot evaluation."""
+        self.qnode = create_qconv_qnode(self.R, self.S, self.M, self.E, self.F, shots=shots)
+
+    def forward(self, x, return_feature_map=False):
         normalized_patches, patch_norms, _, _ = extract_and_normalize_patches(x, self.R, self.S)
         
         # Apply strict kernel normalization policy (Part B2)
@@ -69,9 +73,13 @@ class HybridQConvClassifier(nn.Module):
         # Reconstruct exactly as Y = <K,X> * ||K|| * ||X||
         feature_map = reconstruct_from_probs_torch(probs, kernel_norms, patch_norms, self.M, self.E, self.F)
         
-        # Return logit (Part G: Do not apply Sigmoid here)
+        # Flatten and classify
         flattened = feature_map.flatten().float()
         logit = self.fc(flattened)
         
         # Squeeze out the extra dimension to match target shape [batch] if needed
-        return logit.squeeze()
+        out_logit = logit.squeeze()
+        
+        if return_feature_map:
+            return out_logit, feature_map
+        return out_logit

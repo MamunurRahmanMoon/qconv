@@ -11,9 +11,9 @@ import numpy as np
 from qconv.qconv_oracles import apply_uk_oracle_trainable, apply_ux_oracle_trainable
 
 # %%
-def create_qconv_qnode(R, S, M, E, F):
+def create_qconv_qnode(R, S, M, E, F, shots=None):
     """
-    Dynamically creates and returns a PennyLane QNode configured for backprop.
+    Dynamically creates and returns a PennyLane QNode configured for backprop (or finite shots).
     """
     num_data_qubits = int(np.ceil(np.log2(R * S)))
     num_spatial_qubits = int(np.ceil(np.log2(E * F))) if E * F > 1 else 1
@@ -25,9 +25,11 @@ def create_qconv_qnode(R, S, M, E, F):
     data_wires = list(range(1 + num_spatial_qubits + num_filter_qubits, 1 + num_spatial_qubits + num_filter_qubits + num_data_qubits))
     total_wires = 1 + num_spatial_qubits + num_filter_qubits + num_data_qubits
     
-    dev = qml.device('default.qubit', wires=total_wires)
+    dev = qml.device('default.qubit', wires=total_wires, shots=shots)
     
-    @qml.qnode(dev, interface="torch", diff_method="backprop")
+    diff_method = "backprop" if shots is None else "best"
+    
+    @qml.qnode(dev, interface="torch", diff_method=diff_method)
     def qconv_hadamard_test(normalized_kernels, normalized_patches):
         for w in [ancilla_wire] + spatial_wires + filter_wires:
             qml.Hadamard(wires=w)
