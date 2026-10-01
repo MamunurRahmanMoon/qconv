@@ -1,17 +1,12 @@
 # %%
 """
-exp_smoke_test.py
+exp_classifier_only.py
 
-Minimal end-to-end Phase-2A sanity test.
+Baseline 0:
+    Randomly initialized QConv kernels are frozen.
+    Only the classical classifier is trained.
 
-Runs:
-    1 training sample
-    1 epoch
-    2 validation samples
-    2 test samples
-
-The purpose is to verify that the whole pipeline works before
-launching long Colab experiments.
+Runs five random seeds.
 """
 
 from trainer import run_experiment
@@ -19,86 +14,90 @@ from trainer import run_experiment
 
 if __name__ == "__main__":
 
-    config = {
+    seeds = [
+        0,
+        1,
+        2,
+        3,
+        4,
+    ]
 
-        "exp_name":
-            "Smoke Test",
+    for seed in seeds:
 
-        "init_mode":
-            "random",
+        config = {
 
-        "freeze_qconv":
-            False,
+            "exp_name":
+                "Baseline 0 - Random Fixed Kernels",
 
-        "M":
-            2,
+            "init_mode":
+                "random",
 
-        "R":
-            4,
+            "freeze_qconv":
+                True,
 
-        "S":
-            4,
+            "M":
+                2,
 
-        "E":
-            4,
+            "R":
+                4,
 
-        "F":
-            4,
+            "S":
+                4,
 
-        "epochs":
-            1,
+            "E":
+                4,
 
-        "lr":
-            0.01,
+            "F":
+                4,
 
-        "seed":
-            42,
+            "epochs":
+                2,
 
-        "batch_size":
-            1,
+            "lr":
+                0.01,
 
-        "gradient_clipping":
-            True,
+            "seed":
+                seed,
 
-        "max_grad_norm":
-            1.0,
+            "batch_size":
+                1,
 
-        "debug_numerics":
-            True,
+            "gradient_clipping":
+                True,
 
-        "fail_on_nonfinite_grad":
-            True,
+            "max_grad_norm":
+                1.0,
 
-        "train_samples":
-            1,
+            "debug_numerics":
+                True,
 
-        "val_samples":
-            2,
+            "fail_on_nonfinite_grad":
+                True,
 
-        "test_samples":
-            2,
+            "train_samples":
+                1000,
 
-        "analyze_features":
-            True,
+            "val_samples":
+                200,
 
-        "feature_eval_samples":
-            1,
+            "test_samples":
+                500,
 
-        "run_shot_eval":
-            False,
+            "analyze_features":
+                True,
 
-        "run_resource_analysis":
-            False,
-    }
+            "feature_eval_samples":
+                20,
 
-    run_experiment(
-        config
-    )
+            # IMPORTANT:
+            # These are intentionally disabled here.
+            "run_shot_eval":
+                False,
 
-    print(
-        "\n"
-        + "=" * 60
-        + "\nSMOKE TEST PASSED"
-        + "\n"
-        + "=" * 60
-    )
+            "run_resource_analysis":
+                False,
+        }
+
+        run_experiment(
+            config
+        )
